@@ -30,21 +30,44 @@ int B; /* block size (bytes) */
 int miss_count = 0;
 int hit_count = 0;
 int eviction_count = 0;
-
+ 
 /* 
  * initCache - Allocate memory, write 0's for valid and tag and LRU
  * also computes the set_index_mask
  * FILL THIS FUNCTION IN
  */
+
+struct cacheLine *cLine() {
+    struct cacheLine *cLine = malloc(sizeof (struct cacheLine));
+    if (cLine = NULL) {
+        return -1;
+    }
+
+    cLine->validBit;
+    cLine->tag;
+}
+
 void initCache() {
     return;
 }
+
+// struct cachemaker *initCache() {
+//     struct cachemaker *cache = malloc(sizeof (struct cachemaker));
+//     if (cache == NULL) {
+// 		return -1;
+// 	}
+
+//     cache->cacheSet = S;
+
+//     return cache;
+// }
 
 /* 
  * freeCache - free allocated memory
  * FILL THIS FUNCTION IN
  */
-void freeCache() {
+void freeCache(struct cache *aCache) {
+    free(aCache);
     return;
 }
 
