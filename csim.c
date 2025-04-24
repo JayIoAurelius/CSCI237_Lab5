@@ -36,11 +36,12 @@ int eviction_count = 0;
  * also computes the set_index_mask
  * FILL THIS FUNCTION IN
  */
-
+/*
 struct cacheLine *cLine() {
-    struct cacheLine *cLine = malloc(sizeof (struct cacheLine));
-    if (cLine = NULL) {
-        return -1;
+    //struct cacheLine *cLine = malloc(256);//sizeof (struct cacheLine));
+    
+    if (cLine == NULL) {
+        return NULL;
     }
 
     cLine->validBit = 0;
@@ -75,24 +76,25 @@ struct cachemaker *initCache() {
     //here is where to do the memset? 
 
     return cache;
-}
+}*/
 
-
+/*
 void initCache() {
     return;
 }
-
+*/
 
 /* 
  * freeCache - free allocated memory
  * FILL THIS FUNCTION IN
  */
-void freeCache(struct cachemaker *cache) {
+
+/* void freeCache(struct cachemaker *cache) {
     free(cache->sets->lines);
     free(cache->sets);
     free(cache);
     return;
-}
+}*/
 
 /*
  * replayTrace - replays the given trace file against the cache 
@@ -121,9 +123,10 @@ void replayTrace(char* filename) {
     /*fgets goes through a line of the file at a time. */
     while( fgets (str, 256, fp)!=NULL ) {
         
-        //printf("%d %s", count, str);
+        
         /*scan line of file for the operation, address, and size of the trace instructino */
-        sscanf(str, "%c %d %d", operation, &address, &size);
+        sscanf(str, "%s %d, %d", operation, &address, &size);
+        printf("count: %d operation: %s address: %d size: %d \n", count, operation, address, size);
 
         //increase count of how many instructions we've gone through
         count++;
@@ -195,6 +198,6 @@ void replayTrace(char* filename) {
 
 
 int main(){
-    replayTrace("traces/dave.trace");
+    replayTrace("traces/yi.trace");
     return 0;
 }
