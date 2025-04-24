@@ -111,6 +111,7 @@ void replayTrace(char* filename) {
     */
    char operation[10];
    int address;
+   int size;
    int count = 0;
     /* open file for reading*/
     fp = fopen(filename, "r");
@@ -124,13 +125,13 @@ void replayTrace(char* filename) {
         
         
         /*scan line of file for the operation, address, and size of the trace instructino */
-        sscanf(str, "%*[ ] %s %d, %d", operation, &address);
-        printf("count: %d operation: %s address: %d size: %d \n", count, operation, address);
+        sscanf(str, "%*[ ] %s %d, %d", operation, &address, &size);
+        printf("count: %d operation: %s address: %d size: %d \n", count, operation, address, size);
 
         //increase count of how many instructions we've gone through
         count++;
         /*
-        We can put operation, address, and count into a struct here
+        We can put operation, address, size, and count into a struct here
         */
     }
     
