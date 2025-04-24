@@ -99,14 +99,46 @@ void freeCache(struct cachemaker *cache) {
  * FILL THIS FUNCTION IN
  */
 void replayTrace(char* filename) {
-    return;
+    FILE *fp;
+    char str[256];
+    /*
+    -s <s>: Number of set index bits (S = 2^s is the number of sets)
+    -E <E>: Associativity (number of lines per set)
+    -b <b>: Number of block bits (B = 2^b is the block size)
+    -t <tracefile>: Name of the valgrind trace to replay
+    */
+   char operation[10];
+   int address;
+   int size;
+   int count = 0;
+    /* open file for reading*/
+    fp = fopen(filename, "r");
+    if(fp == NULL) {
+        perror("Error opening file");
+        
+    }
+
+    /*fgets goes through a line of the file at a time. */
+    while( fgets (str, 256, fp)!=NULL ) {
+        
+        //printf("%d %s", count, str);
+        /*scan line of file for the operation, address, and size of the trace instructino */
+        sscanf(str, "%c %d %d", operation, &address, &size);
+
+        //increase count of how many instructions we've gone through
+        count++;
+        /*
+        We can put operation, address, size, and count into a struct here
+        */
+    }
+    
+
+    fclose(fp);
+    
 }
 
-/*
- * main - Main routine 
- */
-int main(int argc, char* argv[]) {
-    char c;
+//int main(int argc, char* argv[]) {
+    /*char c;
 
     while( (c=getopt(argc,argv,"s:E:b:t:vh")) != -1){
         switch(c){
@@ -133,30 +165,36 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
     }
+    */
 
     /* Make sure that all required command line args were specified */
-    if (s == 0 || E == 0 || b == 0 || trace_file == NULL) {
+    /* if (s == 0 || E == 0 || b == 0 || trace_file == NULL) {
         printf("%s: Missing required command line argument\n", argv[0]);
         printUsage(argv);
         exit(1);
-    }
+    } */
 
     /* Compute S, E and B from command line args */
-    S = (unsigned int) pow(2, s);
-    B = (unsigned int) pow(2, b);
+    /*S = (unsigned int) pow(2, s);
+    B = (unsigned int) pow(2, b);*/
  
     /* Initialize cache */
-    initCache();
+    //initCache();
 
     /* Replay trace file */
-    replayTrace(trace_file);
+    // replayTrace(trace_file);
 
     /* Free allocated memory */
-    freeCache();
+    //freeCache();
 
     /* Output the hit and miss statistics for the autograder */
-    printSummary(hit_count, miss_count, eviction_count);
+    /* printSummary(hit_count, miss_count, eviction_count);
+    return 0; */
+//}
+
+
+
+int main(){
+    replayTrace("traces/dave.trace");
     return 0;
 }
-
-
