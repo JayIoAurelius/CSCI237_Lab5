@@ -37,7 +37,7 @@ int eviction_count = 0;
  * FILL THIS FUNCTION IN
  */
 /*
-struct cacheLine *cLine() {
+struct cacheLine *createCacheLine() {
     //struct cacheLine *cLine = malloc(256);//sizeof (struct cacheLine));
     
     if (cLine == NULL) {
@@ -51,7 +51,7 @@ struct cacheLine *cLine() {
     return cLine;
 }
 
-struct cacheSet *cSet() {
+struct cacheSet *createCacheSet() {
     struct cacheSet *cSet() = malloc(sizeof (struct cacheSet));
     if (cSet = NULL) {
         return -1;
@@ -62,7 +62,7 @@ struct cacheSet *cSet() {
     return cSet;
 }
 
-struct cachemaker *initCache() {
+struct cachemaker *createCache() {
     struct cachemaker *cache = malloc(sizeof (struct cachemaker));
     if (cache == NULL) {
 		return -1;
