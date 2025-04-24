@@ -133,9 +133,9 @@ void replayTrace(char* filename) {
         /*
         We can put operation, address, size, and count into a struct here
         */
+
     }
     
-
     fclose(fp);
     
 }
