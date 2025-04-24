@@ -43,31 +43,54 @@ struct cacheLine *cLine() {
         return -1;
     }
 
-    cLine->validBit;
-    cLine->tag;
+    cLine->validBit = 0;
+    cLine->tag = 0;
+    cLine->LRUTrack = 0; 
+
+    return cLine;
 }
+
+struct cacheSet *cSet() {
+    struct cacheSet *cSet() = malloc(sizeof (struct cacheSet));
+    if (cSet = NULL) {
+        return -1;
+    }
+
+    cSet->lines = malloc(E * sizeof(cacheLine));
+
+    return cSet;
+}
+
+struct cachemaker *initCache() {
+    struct cachemaker *cache = malloc(sizeof (struct cachemaker));
+    if (cache == NULL) {
+		return -1;
+	}
+
+    cache->sets = malloc(S * sizeof(cSet));
+    if(cache->sets == NULL) {
+        return -1;
+    }
+
+    //here is where to do the memset? 
+
+    return cache;
+}
+
 
 void initCache() {
     return;
 }
 
-// struct cachemaker *initCache() {
-//     struct cachemaker *cache = malloc(sizeof (struct cachemaker));
-//     if (cache == NULL) {
-// 		return -1;
-// 	}
-
-//     cache->cacheSet = S;
-
-//     return cache;
-// }
 
 /* 
  * freeCache - free allocated memory
  * FILL THIS FUNCTION IN
  */
-void freeCache(struct cache *aCache) {
-    free(aCache);
+void freeCache(struct cachemaker *cache) {
+    free(cache->sets->lines);
+    free(cache->sets);
+    free(cache);
     return;
 }
 
