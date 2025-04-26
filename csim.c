@@ -44,15 +44,17 @@ struct cacheLine{
     int LRUTrack;
 };
 
-void initCache(int s,int b,int E) {
-    struct cacheLine *cache = malloc(sizeof (struct cache));
+struct cache{
+    struct cacheLine *cacheLines;
+};
+
+void initCache() {
+    struct cache *c = malloc(sizeof (struct cache));
+    S = pow(2, s);
+
+    c->cacheLines = malloc(S * sizeof(cacheLine));
     for(int i=0; i < s; i++) {
-        cache[i] = (struct cacheLine*) malloc(sizeof(struct cacheLine) * E);
-        for(int j=0; j<E; j++){
-            cache[i][j]->valid = 0;
-            cache[i][j]->tag = 0;
-            cache[i][j]->LRUTrack = 0;
-        }
+        c->cacheLines = malloc(S * sizeof(cacheLine));
     }
 
     return;
