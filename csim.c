@@ -100,11 +100,13 @@ void replayTrace(char* filename) {
         
         
         /*scan line of file for the operation, address, and size of the trace instructino */
-        sscanf(str, "%s %d, %d", operation, &address, &size);
+        if (sscanf(str, "%*[ ] %s %d, %d", operation, &address, &size)){
+            count++;
+        }
         printf("count: %d operation: %s address: %d size: %d \n", count, operation, address, size);
 
         //increase count of how many instructions we've gone through
-        count++;
+        
         /*
         We can put operation, address, size, and count into a struct here
         */
@@ -173,6 +175,6 @@ void replayTrace(char* filename) {
 
 
 int main(){
-    replayTrace("traces/yi.trace");
+    replayTrace("traces/trans.trace");
     return 0;
 }
