@@ -31,58 +31,33 @@ int miss_count = 0;
 int hit_count = 0;
 int eviction_count = 0;
  
-/* 
- * initCache - Allocate memory, write 0's for valid and tag and LRU
- * also computes the set_index_mask
- * FILL THIS FUNCTION IN
- */
-/*
-struct cacheLine *createCacheLine() {
-    //struct cacheLine *cLine = malloc(256);//sizeof (struct cacheLine));
-    
-    if (cLine == NULL) {
-        return NULL;
+// /* 
+//  * initCache - Allocate memory, write 0's for valid and tag and LRU
+//  * also computes the set_index_mask
+//  * FILL THIS FUNCTION IN
+//  */
+
+
+struct cacheLine{
+    int validBit;
+    int tag;
+    int LRUTrack;
+};
+
+void initCache(int s,int b,int E) {
+    struct cacheLine *cache = malloc(sizeof (struct cache));
+    for(int i=0; i < s; i++) {
+        cache[i] = (struct cacheLine*) malloc(sizeof(struct cacheLine) * E);
+        for(int j=0; j<E; j++){
+            cache[i][j]->valid = 0;
+            cache[i][j]->tag = 0;
+            cache[i][j]->LRUTrack = 0;
+        }
     }
 
-    cLine->validBit = 0;
-    cLine->tag = 0;
-    cLine->LRUTrack = 0; 
-
-    return cLine;
-}
-
-struct cacheSet *createCacheSet() {
-    struct cacheSet *cSet() = malloc(sizeof (struct cacheSet));
-    if (cSet = NULL) {
-        return -1;
-    }
-
-    cSet->lines = malloc(E * sizeof(cacheLine));
-
-    return cSet;
-}
-
-struct cachemaker *createCache() {
-    struct cachemaker *cache = malloc(sizeof (struct cachemaker));
-    if (cache == NULL) {
-		return -1;
-	}
-
-    cache->sets = malloc(S * sizeof(cSet));
-    if(cache->sets == NULL) {
-        return -1;
-    }
-
-    //here is where to do the memset? 
-
-    return cache;
-}*/
-
-/*
-void initCache() {
     return;
 }
-*/
+
 
 /* 
  * freeCache - free allocated memory
