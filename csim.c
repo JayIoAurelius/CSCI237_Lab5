@@ -38,40 +38,38 @@ int eviction_count = 0;
 //  */
 
 
-struct cacheLine{
-    int validBit;
-    int tag;
-    int LRUTrack;
-};
+// struct cacheLine{
+//     int validBit;
+//     int tag;
+//     int LRUTrack;
+// };
 
-struct cache{
-    struct cacheLine *cacheLines;
-};
+// struct cache{
+//     struct cacheLine *cacheLines;
+// };
 
-void initCache() {
-    struct cache *c = malloc(sizeof (struct cache));
-    S = pow(2, s);
+// void initCache() {
+//     struct cache *c = malloc(sizeof (struct cache));
+//     S = pow(2, s);
 
-    c->cacheLines = malloc(S * sizeof(cacheLine));
-    for(int i=0; i < s; i++) {
-        c->cacheLines = malloc(S * sizeof(cacheLine));
-    }
+//     c->cacheLines = malloc(S * sizeof(cacheLine));
+//     for(int i=0; i < s; i++) {
+//         c->cacheLines = malloc(S * sizeof(cacheLine));
+//     }
 
-    return;
-}
+//     return;
+// }
 
 
-/* 
- * freeCache - free allocated memory
- * FILL THIS FUNCTION IN
- */
+// /* 
+//  * freeCache - free allocated memory
+//  * FILL THIS FUNCTION IN
+//  */
 
-/* void freeCache(struct cachemaker *cache) {
-    free(cache->sets->lines);
-    free(cache->sets);
-    free(cache);
-    return;
-}*/
+// void freeCache(struct cache) {
+//     free(cache);
+//     return;
+// }
 
 /*
  * replayTrace - replays the given trace file against the cache 
@@ -97,6 +95,14 @@ void replayTrace(char* filename) {
         
     }
 
+    //temporary FIX
+    s = 4;
+    b = 4;
+    
+    //for the tag we need the first some # of bits
+    int tagMask = -1 << (s + b);
+    int setMask = (-1 << b) & ~(tagMask);
+
     /*fgets goes through a line of the file at a time. */
     while( fgets (str, 256, fp)!=NULL ) {
         
@@ -105,15 +111,45 @@ void replayTrace(char* filename) {
         if (sscanf(str, "%*[ ] %s %d, %d", operation, &address, &size)){
             count++;
         }
-        printf("count: %d operation: %s address: %d size: %d \n", count, operation, address, size);
+        //printf("count: %d operation: %s address: %d size: %d \n", count, operation, address, size);
 
         //increase count of how many instructions we've gone through
         
         /*
         We can put operation, address, size, and count into a struct here
         */
+        // //step 1: parse the address
+        // int tag = address & tagMask;
+        // int set = address & setMask;
+        // set = set >> b;
+        // bool hit = false;
+
+        // //printf("count: %d set: %d", tag, set);
+        // //step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. Then have an if statement about if the valid bit is 1. 
+        // for(int i = 0; i<E; i++){
+        //     if(cache[set][i]->tag == tag) {
+        //         if(cache[set][i]->validBit == 1) {
+        //             hit_count ++;
+        //             hit = true;
+        //         }
+        //     }
+        //     else{
+        //         miss_count++;
+        //     }
+
+        //     //step 3: check if it needs to evict if its a miss if its an L or M / put in the thing
+        //     if(operation == "L" || operation == "M"){
+
+        //     }
+        // }
+        
+
+        
+
 
     }
+
+
     
     fclose(fp);
     
@@ -177,6 +213,6 @@ void replayTrace(char* filename) {
 
 
 int main(){
-    replayTrace("traces/trans.trace");
+    replayTrace("traces/yi.trace");
     return 0;
-}
+} 
