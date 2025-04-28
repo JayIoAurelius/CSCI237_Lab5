@@ -48,17 +48,18 @@ typedef cacheSetT* cacheT;
 
 cacheT cache;
 
-void initCache(int S, int E) {
+void initCache() {
     cache = malloc(S * sizeof (cacheSetT));
-    // if(cache == NULL) {
-    //     return -1; 
-    // }
+    if(cache == NULL) {
+        return -1; 
+    }
 
     for(int i = 0; i < S; i++){
         cache[i] = malloc(E * sizeof (cacheLineT));
-        // if(cache[i] == NULL) {
-        //     return -1; //this might need to free the other thing first
-        // }
+        if(cache[i] == NULL) {
+            free(cache);
+            return -1;
+        }
 
         for(int j = 0; j < E; j++){
             cache[i][j].validBit = 0;
@@ -75,7 +76,10 @@ void initCache(int S, int E) {
 //  * FILL THIS FUNCTION IN
 //  */
 
-void freeCache(typedef cacheT cache) {
+void freeCache() {
+    for(int i = 0; i < S; i ++){
+        free(cache[i]);
+    }
     free(cache);
     return;
 }
@@ -111,7 +115,7 @@ void replayTrace(char* filename) {
     while( fgets (str, 256, fp)!=NULL ) {
         
         /*scan line of file for the operation, address, and size of the trace instructino */
-        if (sscanf(str, "%*[ ] %s %d, %d", operation, &address, &size)){
+        if (sscanf(str, "%*[ ] %c %d, %d", operation, &address, &size)){
             count++;
         }
         printf("%d %s %d %d \n", count, operation, address, size);
@@ -130,7 +134,7 @@ void replayTrace(char* filename) {
 
      
         int hit = 0;
-        int cacheSpace = 0;
+        int cacheSpaceTrue = 0;
         int emptyLine = -1;
         int highestLRU = -1;
 
@@ -142,43 +146,42 @@ void replayTrace(char* filename) {
                 if(cache[set][i].tag == tag) {
                     hit_count ++;
                     hit = 1;
-            
-                    if(cache[set][i].LRUTrack > highestLRU){
-                        highestLRU = cache[set][i].LRUTrack;
-                    }
                 } 
+
+                else if(cache[set][i].LRUTrack > highestLRU){
+                    highestLRU = cache[set][i].LRUTrack;
+                }
             }
 
             else{
-                cacheSpace = 1;
+                cacheSpaceTrue = 1;
                 emptyLine = i;
             }
         
         //step 3: check if it needs to evict if its a miss if its an L or M / put in the thing
-            
         }
         if(hit == 0){
+
             miss_count++;
-            if(operation == "L" || operation == "M"){
-                if(cacheSpace == 0){ //this is if there is a spot in the cache with 0 valid bit
-                    cache[set][emptyLine].validBit = 1;
-                    cache[set][emptyLine].tag = tag;
-                    cache[set][emptyLine].LRUTrack = 0;
-                }
-                else{ //if everything is full
-                    eviction_count++;
-                    for(int i = 0; i < E; i++){
-                        if(cache[set][i].validBit == 0){
-                            cache[set][i].LRUTrack++;
-                        }
+
+            if(cacheSpaceTrue == 0){ //this is if there is a spot in the cache with 0 valid bit
+                cache[set][emptyLine].validBit = 1;
+                cache[set][emptyLine].tag = tag;
+                cache[set][emptyLine].LRUTrack = 0;
+            }
+            else{ //if everything is full
+                eviction_count++;
+                for(int i = 0; i < E; i++){
+                    if(cache[set][i].validBit == 0){
+                        cache[set][i].LRUTrack++;
                     }
-                    cache[set][highestLRU].tag = tag;
-                    cache[set][highestLRU].LRUTrack = 0;
                 }
+                cache[set][highestLRU].tag = tag;
+                cache[set][highestLRU].LRUTrack = 0;
             }
         }
 
-        if(operation == "M") {
+        if(operation == 'M') { 
             hit ++;
         }
     }
@@ -187,8 +190,8 @@ void replayTrace(char* filename) {
     
 }
 
-//int main(int argc, char* argv[]) {
-    /*char c;
+int main(int argc, char* argv[]) {
+    char c;
 
     while( (c=getopt(argc,argv,"s:E:b:t:vh")) != -1){
         switch(c){
@@ -215,36 +218,36 @@ void replayTrace(char* filename) {
             exit(1);
         }
     }
-    */
+
 
     /* Make sure that all required command line args were specified */
-    /* if (s == 0 || E == 0 || b == 0 || trace_file == NULL) {
+    if (s == 0 || E == 0 || b == 0 || trace_file == NULL) {
         printf("%s: Missing required command line argument\n", argv[0]);
         printUsage(argv);
         exit(1);
-    } */
+    } 
 
     /* Compute S, E and B from command line args */
-    /*S = (unsigned int) pow(2, s);
-    B = (unsigned int) pow(2, b);*/
+    S = (unsigned int) pow(2, s);
+    B = (unsigned int) pow(2, b);
  
     /* Initialize cache */
-    //initCache();
+    initCache();
 
     /* Replay trace file */
-    // replayTrace(trace_file);
+    replayTrace(trace_file);
 
     /* Free allocated memory */
-    //freeCache();
+    freeCache();
 
     /* Output the hit and miss statistics for the autograder */
-    /* printSummary(hit_count, miss_count, eviction_count);
-    return 0; */
-//}
-
-
-
-int main(){
-    replayTrace("traces/yi.trace");
+    printSummary(hit_count, miss_count, eviction_count);
     return 0;
-} 
+}
+
+
+
+// int main(){
+//     replayTrace("traces/yi.trace");
+//     return 0;
+// } 
