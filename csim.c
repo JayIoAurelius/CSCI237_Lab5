@@ -37,28 +37,37 @@ int eviction_count = 0;
 //  * FILL THIS FUNCTION IN
 //  */
 
+typedef struct cacheLine{
+    int validBit;
+    int tag;
+    int LRUTrack;
+}cacheLineT;
 
-// struct cacheLine{
-//     int validBit;
-//     int tag;
-//     int LRUTrack;
-// };
+typedef cacheLineT* cacheSetT;
+typedef cacheSetT* cacheT;
 
-// struct cache{
-//     struct cacheLine *cacheLines;
-// };
+cacheT cache;
 
-// void initCache() {
-//     struct cache *c = malloc(sizeof (struct cache));
-//     S = pow(2, s);
+void initCache(int S, int E) {
+    cache = malloc(S * sizeof (cacheSetT));
+    // if(cache == NULL) {
+    //     return -1; 
+    // }
 
-//     c->cacheLines = malloc(S * sizeof(cacheLine));
-//     for(int i=0; i < s; i++) {
-//         c->cacheLines = malloc(S * sizeof(cacheLine));
-//     }
+    for(int i = 0; i < S; i++){
+        cache[i] = malloc(E * sizeof (cacheLineT));
+        // if(cache[i] == NULL) {
+        //     return -1; //this might need to free the other thing first
+        // }
 
-//     return;
-// }
+        for(int j = 0; j < E; j++){
+            cache[i][j].validBit = 0;
+            cache[i][j].tag = 0;
+            cache[i][j].LRUTrack = 0;
+        }
+    }
+    return;
+}
 
 
 // /* 
@@ -66,10 +75,10 @@ int eviction_count = 0;
 //  * FILL THIS FUNCTION IN
 //  */
 
-// void freeCache(struct cache) {
-//     free(cache);
-//     return;
-// }
+void freeCache(typedef cacheT cache) {
+    free(cache);
+    return;
+}
 
 /*
  * replayTrace - replays the given trace file against the cache 
@@ -92,12 +101,7 @@ void replayTrace(char* filename) {
     fp = fopen(filename, "r");
     if(fp == NULL) {
         perror("Error opening file");
-        
     }
-
-    //temporary FIX
-    s = 4;
-    b = 4;
     
     //for the tag we need the first some # of bits
     int tagMask = -1 << (s + b);
@@ -106,51 +110,79 @@ void replayTrace(char* filename) {
     /*fgets goes through a line of the file at a time. */
     while( fgets (str, 256, fp)!=NULL ) {
         
-        
         /*scan line of file for the operation, address, and size of the trace instructino */
         if (sscanf(str, "%*[ ] %s %d, %d", operation, &address, &size)){
             count++;
         }
-        //printf("count: %d operation: %s address: %d size: %d \n", count, operation, address, size);
+        printf("%d %s %d %d \n", count, operation, address, size);
 
         //increase count of how many instructions we've gone through
-        
         /*
         We can put operation, address, size, and count into a struct here
         */
-        // //step 1: parse the address
-        // int tag = address & tagMask;
-        // int set = address & setMask;
-        // set = set >> b;
-        // bool hit = false;
 
-        // //printf("count: %d set: %d", tag, set);
-        // //step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. Then have an if statement about if the valid bit is 1. 
-        // for(int i = 0; i<E; i++){
-        //     if(cache[set][i]->tag == tag) {
-        //         if(cache[set][i]->validBit == 1) {
-        //             hit_count ++;
-        //             hit = true;
-        //         }
-        //     }
-        //     else{
-        //         miss_count++;
-        //     }
+        //step 1: parse the address
+        int tag = address & tagMask;
+        tag = tag >> (s+b);
 
-        //     //step 3: check if it needs to evict if its a miss if its an L or M / put in the thing
-        //     if(operation == "L" || operation == "M"){
+        int set = address & setMask;
+        set = set >> b;
 
-        //     }
-        // }
+     
+        int hit = 0;
+        int cacheSpace = 0;
+        int emptyLine = -1;
+        int highestLRU = -1;
+
+    //     printf("count: %d set: %d", tag, set);
+
+        //step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. Then have an if statement about if the valid bit is 1. 
+        for(int i = 0; i<E; i++){ 
+            if(cache[set][i].validBit == 1) {
+                if(cache[set][i].tag == tag) {
+                    hit_count ++;
+                    hit = 1;
+            
+                    if(cache[set][i].LRUTrack > highestLRU){
+                        highestLRU = cache[set][i].LRUTrack;
+                    }
+                } 
+            }
+
+            else{
+                cacheSpace = 1;
+                emptyLine = i;
+            }
         
+        //step 3: check if it needs to evict if its a miss if its an L or M / put in the thing
+            
+        }
+        if(hit == 0){
+            miss_count++;
+            if(operation == "L" || operation == "M"){
+                if(cacheSpace == 0){ //this is if there is a spot in the cache with 0 valid bit
+                    cache[set][emptyLine].validBit = 1;
+                    cache[set][emptyLine].tag = tag;
+                    cache[set][emptyLine].LRUTrack = 0;
+                }
+                else{ //if everything is full
+                    eviction_count++;
+                    for(int i = 0; i < E; i++){
+                        if(cache[set][i].validBit == 0){
+                            cache[set][i].LRUTrack++;
+                        }
+                    }
+                    cache[set][highestLRU].tag = tag;
+                    cache[set][highestLRU].LRUTrack = 0;
+                }
+            }
+        }
 
-        
-
-
+        if(operation == "M") {
+            hit ++;
+        }
     }
 
-
-    
     fclose(fp);
     
 }
