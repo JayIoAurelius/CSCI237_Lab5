@@ -142,7 +142,7 @@ void replayTrace(char* filename) {
         int emptyLine = -1;
 
         int highestLRU = -1;
-        int highestLRUIndex = -1;
+        int locHighestLRU = -1;
 
 
         /*
@@ -163,7 +163,6 @@ void replayTrace(char* filename) {
                 else if(cache[set][i].LRUTrack > highestLRU){
                     //printf("find higher LRU \n");
                     highestLRU = cache[set][i].LRUTrack;
-                    highestLRUIndex = i;
                     locHighestLRU = i;
                 }
             }
@@ -209,8 +208,10 @@ void replayTrace(char* filename) {
         }
     }
 
-    fclose(fp); //Problems: cache doesn't univesally update. Also, the free is fucked up and shuts the program down. 
     
+    
+    }
+    fclose(fp); //Problems: cache doesn't univesally update. Also, the free is fucked up and shuts the program down. 
 }
 
 int main(int argc, char* argv[]) {
@@ -220,7 +221,7 @@ int main(int argc, char* argv[]) {
     s = 4;
     E = 1;
     b = 4;
-    trace_file = "traces/trans.trace";
+    trace_file = "traces/yi.trace";
     
     while( (c=getopt(argc,argv,"s:E:b:t:vh")) != -1){
         switch(c){
@@ -274,11 +275,3 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-
-// int main(){
-//     S = 3;
-//     E = 1;
-//     b = 2;
-//     initCache();
-//     return 0;
-// } 
