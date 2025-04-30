@@ -111,7 +111,9 @@ void replayTrace(char* filename) {
     
     //for the tag we need the first some # of bits
     int tagMask = -1 << (s + b);
+   // printf("%d tagmask \n", tagMask); 
     int setMask = (-1 << b) & ~(tagMask);
+    //printf("%d setMask \n", setMask);
 
     /*fgets goes through a line of the file at a time. */
     while( fgets (str, 256, fp)!=NULL ) {
@@ -132,24 +134,25 @@ void replayTrace(char* filename) {
 
         int set = address & setMask;
         set = set >> b;
-        //printf("SET %d", set);
-
+        //printf("address: %x \n", address);
+        // printf("tag: %d set: %d \n", tag, set);
      
         int hit = 0;
         int cacheSpaceTrue = 0;
         int emptyLine = -1;
-        int highestLRU = -1;
-        int locHighestLRU = -1;
 
-    //     printf("count: %d set: %d", tag, set);
+        int highestLRU = -1;
+        int highestLRUIndex = -1;
+
 
         /*
             step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. 
             Then have an if statement about if the valid bit is 1. 
         */
         for(int i = 0; i<E; i++){ 
-            if(cache[set][i].validBit == 1 ) {
-                //printf("found valid bit\n");
+            // printf("validBit %d \n", cache[set][i].validBit);
+
+            if(cache[set][i].validBit == 1) {
                 if(cache[set][i].tag == tag) {
                     //printf("HIT 1\n");
                     hit_count ++;
@@ -160,6 +163,7 @@ void replayTrace(char* filename) {
                 else if(cache[set][i].LRUTrack > highestLRU){
                     //printf("find higher LRU \n");
                     highestLRU = cache[set][i].LRUTrack;
+                    highestLRUIndex = i;
                     locHighestLRU = i;
                 }
             }
@@ -174,6 +178,13 @@ void replayTrace(char* filename) {
         if(hit == 0){
             //printf("MISS \n");
             miss_count++;
+
+            if(cacheSpaceTrue != 0){ //this is if there is a spot in the cache with 0 valid bit
+                for(int i = 0; i < E; i++){
+                    if(cache[set][i].validBit == 1){
+                        cache[set][i].LRUTrack++;
+                    }
+                }
             for(int i = 0; i < E; i++){
                 if(cache[set][i].validBit == 1){
                     cache[set][i].LRUTrack++;
@@ -198,7 +209,7 @@ void replayTrace(char* filename) {
         }
     }
 
-    fclose(fp);
+    fclose(fp); //Problems: cache doesn't univesally update. Also, the free is fucked up and shuts the program down. 
     
 }
 
@@ -264,8 +275,10 @@ int main(int argc, char* argv[]) {
 }
 
 
-
 // int main(){
-//     replayTrace("traces/yi.trace");
+//     S = 3;
+//     E = 1;
+//     b = 2;
+//     initCache();
 //     return 0;
 // } 
