@@ -109,9 +109,9 @@ void replayTrace(char* filename) {
     
     //for the tag we need the first some # of bits
     int tagMask = -1 << (s + b);
-    printf("%d tagmask \n", tagMask); 
+   // printf("%d tagmask \n", tagMask); 
     int setMask = (-1 << b) & ~(tagMask);
-    printf("%d setMask \n", setMask);
+    //printf("%d setMask \n", setMask);
 
     /*fgets goes through a line of the file at a time. */
     while( fgets (str, 256, fp)!=NULL ) {
@@ -128,18 +128,20 @@ void replayTrace(char* filename) {
 
         int set = address & setMask;
         set = set >> b;
-        printf("address: %x \n", address);
-        printf("tag: %d set: %d \n", tag, set);
+        //printf("address: %x \n", address);
+        // printf("tag: %d set: %d \n", tag, set);
      
         int hit = 0;
         int cacheSpaceTrue = 0;
         int emptyLine = -1;
+
         int highestLRU = -1;
+        int highestLRUIndex = -1;
 
 
         // step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. Then have an if statement about if the valid bit is 1. 
         for(int i = 0; i<E; i++){ 
-            printf("validBit %d \n", cache[set][i].validBit);
+            // printf("validBit %d \n", cache[set][i].validBit);
 
             if(cache[set][i].validBit == 1) {
                 if(cache[set][i].tag == tag) {
@@ -149,6 +151,7 @@ void replayTrace(char* filename) {
 
                 else if(cache[set][i].LRUTrack > highestLRU){
                     highestLRU = cache[set][i].LRUTrack;
+                    highestLRUIndex = i;
                 }
             }
 
@@ -164,6 +167,11 @@ void replayTrace(char* filename) {
             miss_count++;
 
             if(cacheSpaceTrue != 0){ //this is if there is a spot in the cache with 0 valid bit
+                for(int i = 0; i < E; i++){
+                    if(cache[set][i].validBit == 1){
+                        cache[set][i].LRUTrack++;
+                    }
+                }
                 cache[set][emptyLine].validBit = 1;
                 cache[set][emptyLine].tag = tag;
                 cache[set][emptyLine].LRUTrack = 0;
@@ -171,13 +179,13 @@ void replayTrace(char* filename) {
             else{ //if everything is full
                 eviction_count++;
                 for(int i = 0; i < E; i++){
-                    if(cache[set][i].validBit == 0){
+                    if(cache[set][i].validBit == 1){
                         cache[set][i].LRUTrack++;
                     }
                 }
-                cache[set][highestLRU].validBit = 1;
-                cache[set][highestLRU].tag = tag;
-                cache[set][highestLRU].LRUTrack = 0;
+                cache[set][highestLRUIndex].validBit = 1;
+                cache[set][highestLRUIndex].tag = tag;
+                cache[set][highestLRUIndex].LRUTrack = 0;
             }
         }
    
@@ -238,7 +246,7 @@ int main(int argc, char* argv[]) {
     replayTrace(trace_file);
 
     /* Free allocated memory */
-    // freeCache();
+    freeCache();
 
     /* Output the hit and miss statistics for the autograder */
     printSummary(hit_count, miss_count, eviction_count);
