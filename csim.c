@@ -99,7 +99,7 @@ void replayTrace(char* filename) {
     -t <tracefile>: Name of the valgrind trace to replay
     */
    char operation[2];
-   int address;
+   long address;
    int size;
    int count = 0;
     /* open file for reading*/
@@ -110,9 +110,9 @@ void replayTrace(char* filename) {
     }
     
     //for the tag we need the first some # of bits
-    int tagMask = -1 << (s + b);
+    unsigned int tagMask = -1 << (s + b);
    // printf("%d tagmask \n", tagMask); 
-    int setMask = (-1 << b) & ~(tagMask);
+    unsigned int setMask = (-1 << b) & ~(tagMask);
     //printf("%d setMask \n", setMask);
 
     /*fgets goes through a line of the file at a time. */
@@ -123,10 +123,13 @@ void replayTrace(char* filename) {
             IMPORTANT: here "I" is filtered out because the %*[ ] requires a leading space 
                        for the line to be scanned
          */
-        if (sscanf(str, "%*[ ] %s %d, %d", operation, &address, &size)){
+        if (sscanf(str, "%*[ ] %1s %lx, %d", operation, &address, &size) ==3){
             count++;
         }
-        printf("%d %s %d %d \n", count, operation, address, size);
+        else{
+            continue;
+        }
+        printf("%d %s %lx %d \n", count, operation, address, size);
 
         //step 1: parse the address
         int tag = address & tagMask;
@@ -156,7 +159,7 @@ void replayTrace(char* filename) {
                 if(cache[set][i].tag == tag) {
                     //printf("HIT 1\n");
                     hit_count ++;
-                    
+                    cache[set][i].LRUTrack =0;
                     hit = 1;
                 } 
 
@@ -177,19 +180,13 @@ void replayTrace(char* filename) {
         if(hit == 0){
             //printf("MISS \n");
             miss_count++;
-
-            if(cacheSpaceTrue != 0){ //this is if there is a spot in the cache with 0 valid bit
-                for(int i = 0; i < E; i++){
-                    if(cache[set][i].validBit == 1){
-                        cache[set][i].LRUTrack++;
-                    }
-                }
             for(int i = 0; i < E; i++){
                 if(cache[set][i].validBit == 1){
                     cache[set][i].LRUTrack++;
                 }
-            }
-            if(cacheSpaceTrue == 1){ //this is if there is a spot in the cache with 0 valid bit
+            }                
+            
+            if(cacheSpaceTrue != 0){ //this is if there is a spot in the cache with 0 valid bit
                 //printf("space in cache True 2 \n");
                 cache[set][emptyLine].validBit = 1;
                 cache[set][emptyLine].tag = tag;
@@ -201,7 +198,7 @@ void replayTrace(char* filename) {
                 cache[set][locHighestLRU].tag = tag;
                 cache[set][locHighestLRU].LRUTrack = 0;
             }
-        }
+        
         //printf("OPERATION %c \n", operation[0]);
         if(operation[0] == 'M') { 
             hit_count++;
