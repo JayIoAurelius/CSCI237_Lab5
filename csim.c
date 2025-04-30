@@ -51,14 +51,16 @@ cacheT cache;
 void initCache() {
     cache = malloc(S * sizeof (cacheSetT));
     if(cache == NULL) {
-        return -1; 
+        perror("ERROR at cache == null");
+        exit(1);
     }
 
     for(int i = 0; i < S; i++){
         cache[i] = malloc(E * sizeof (cacheLineT));
         if(cache[i] == NULL) {
             free(cache);
-            return -1;
+            perror("ERROR at cache[i] == null");   
+            exit(1);         
         }
 
         for(int j = 0; j < E; j++){
@@ -86,7 +88,6 @@ void freeCache() {
 
 /*
  * replayTrace - replays the given trace file against the cache 
- * FILL THIS FUNCTION IN
  */
 void replayTrace(char* filename) {
     FILE *fp;
@@ -97,7 +98,7 @@ void replayTrace(char* filename) {
     -b <b>: Number of block bits (B = 2^b is the block size)
     -t <tracefile>: Name of the valgrind trace to replay
     */
-   char operation[10];
+   char operation[2];
    int address;
    int size;
    int count = 0;
@@ -105,6 +106,7 @@ void replayTrace(char* filename) {
     fp = fopen(filename, "r");
     if(fp == NULL) {
         perror("Error opening file");
+        exit(1);
     }
     
     //for the tag we need the first some # of bits
@@ -114,16 +116,15 @@ void replayTrace(char* filename) {
     /*fgets goes through a line of the file at a time. */
     while( fgets (str, 256, fp)!=NULL ) {
         
-        /*scan line of file for the operation, address, and size of the trace instructino */
-        if (sscanf(str, "%*[ ] %c %d, %d", operation, &address, &size)){
+        /*
+            scan line of file for the operation, address, and size of the trace instruction
+            IMPORTANT: here "I" is filtered out because the %*[ ] requires a leading space 
+                       for the line to be scanned
+         */
+        if (sscanf(str, "%*[ ] %s %d, %d", operation, &address, &size)){
             count++;
         }
         printf("%d %s %d %d \n", count, operation, address, size);
-
-        //increase count of how many instructions we've gone through
-        /*
-        We can put operation, address, size, and count into a struct here
-        */
 
         //step 1: parse the address
         int tag = address & tagMask;
@@ -131,25 +132,35 @@ void replayTrace(char* filename) {
 
         int set = address & setMask;
         set = set >> b;
+        //printf("SET %d", set);
 
      
         int hit = 0;
         int cacheSpaceTrue = 0;
         int emptyLine = -1;
         int highestLRU = -1;
+        int locHighestLRU = -1;
 
     //     printf("count: %d set: %d", tag, set);
 
-        //step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. Then have an if statement about if the valid bit is 1. 
+        /*
+            step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. 
+            Then have an if statement about if the valid bit is 1. 
+        */
         for(int i = 0; i<E; i++){ 
-            if(cache[set][i].validBit == 1) {
+            if(cache[set][i].validBit == 1 ) {
+                //printf("found valid bit\n");
                 if(cache[set][i].tag == tag) {
+                    //printf("HIT 1\n");
                     hit_count ++;
+                    
                     hit = 1;
                 } 
 
                 else if(cache[set][i].LRUTrack > highestLRU){
+                    //printf("find higher LRU \n");
                     highestLRU = cache[set][i].LRUTrack;
+                    locHighestLRU = i;
                 }
             }
 
@@ -161,28 +172,29 @@ void replayTrace(char* filename) {
         //step 3: check if it needs to evict if its a miss if its an L or M / put in the thing
         }
         if(hit == 0){
-
+            //printf("MISS \n");
             miss_count++;
-
-            if(cacheSpaceTrue == 0){ //this is if there is a spot in the cache with 0 valid bit
+            for(int i = 0; i < E; i++){
+                if(cache[set][i].validBit == 1){
+                    cache[set][i].LRUTrack++;
+                }
+            }
+            if(cacheSpaceTrue == 1){ //this is if there is a spot in the cache with 0 valid bit
+                //printf("space in cache True 2 \n");
                 cache[set][emptyLine].validBit = 1;
                 cache[set][emptyLine].tag = tag;
                 cache[set][emptyLine].LRUTrack = 0;
             }
             else{ //if everything is full
+                //printf("eviction necessary \n");
                 eviction_count++;
-                for(int i = 0; i < E; i++){
-                    if(cache[set][i].validBit == 0){
-                        cache[set][i].LRUTrack++;
-                    }
-                }
-                cache[set][highestLRU].tag = tag;
-                cache[set][highestLRU].LRUTrack = 0;
+                cache[set][locHighestLRU].tag = tag;
+                cache[set][locHighestLRU].LRUTrack = 0;
             }
         }
-
-        if(operation == 'M') { 
-            hit ++;
+        //printf("OPERATION %c \n", operation[0]);
+        if(operation[0] == 'M') { 
+            hit_count++;
         }
     }
 
@@ -192,7 +204,13 @@ void replayTrace(char* filename) {
 
 int main(int argc, char* argv[]) {
     char c;
-
+    // setting defaults for testing
+    verbosity = 1;
+    s = 4;
+    E = 1;
+    b = 4;
+    trace_file = "traces/trans.trace";
+    
     while( (c=getopt(argc,argv,"s:E:b:t:vh")) != -1){
         switch(c){
         case 's':
