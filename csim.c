@@ -50,16 +50,16 @@ cacheT cache;
 
 void initCache() {
     cache = malloc(S * sizeof (cacheSetT));
-    if(cache == NULL) {
-        return -1; 
-    }
+    // if(cache == NULL) {
+    //     return -1; 
+    // }
 
     for(int i = 0; i < S; i++){
         cache[i] = malloc(E * sizeof (cacheLineT));
-        if(cache[i] == NULL) {
-            free(cache);
-            return -1;
-        }
+        // if(cache[i] == NULL) {
+        //     free(cache);
+        //     return -1;
+        // }
 
         for(int j = 0; j < E; j++){
             cache[i][j].validBit = 0;
@@ -109,21 +109,18 @@ void replayTrace(char* filename) {
     
     //for the tag we need the first some # of bits
     int tagMask = -1 << (s + b);
+    printf("%d tagmask \n", tagMask); 
     int setMask = (-1 << b) & ~(tagMask);
+    printf("%d setMask \n", setMask);
 
     /*fgets goes through a line of the file at a time. */
     while( fgets (str, 256, fp)!=NULL ) {
         
-        /*scan line of file for the operation, address, and size of the trace instructino */
-        if (sscanf(str, "%*[ ] %c %d, %d", operation, &address, &size)){
+        /*scan line of file for the operation, address, and size of the trace instruction */
+        if (sscanf(str, "%*[ ] %c %x, %d", operation, &address, &size)){
             count++;
         }
-        printf("%d %s %d %d \n", count, operation, address, size);
-
-        //increase count of how many instructions we've gone through
-        /*
-        We can put operation, address, size, and count into a struct here
-        */
+       // printf("%d %s %d %d \n", count, operation, address, size);
 
         //step 1: parse the address
         int tag = address & tagMask;
@@ -131,17 +128,19 @@ void replayTrace(char* filename) {
 
         int set = address & setMask;
         set = set >> b;
-
+        printf("address: %x \n", address);
+        printf("tag: %d set: %d \n", tag, set);
      
         int hit = 0;
         int cacheSpaceTrue = 0;
         int emptyLine = -1;
         int highestLRU = -1;
 
-    //     printf("count: %d set: %d", tag, set);
 
-        //step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. Then have an if statement about if the valid bit is 1. 
+        // step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. Then have an if statement about if the valid bit is 1. 
         for(int i = 0; i<E; i++){ 
+            printf("validBit %d \n", cache[set][i].validBit);
+
             if(cache[set][i].validBit == 1) {
                 if(cache[set][i].tag == tag) {
                     hit_count ++;
@@ -164,7 +163,7 @@ void replayTrace(char* filename) {
 
             miss_count++;
 
-            if(cacheSpaceTrue == 0){ //this is if there is a spot in the cache with 0 valid bit
+            if(cacheSpaceTrue != 0){ //this is if there is a spot in the cache with 0 valid bit
                 cache[set][emptyLine].validBit = 1;
                 cache[set][emptyLine].tag = tag;
                 cache[set][emptyLine].LRUTrack = 0;
@@ -176,17 +175,18 @@ void replayTrace(char* filename) {
                         cache[set][i].LRUTrack++;
                     }
                 }
+                cache[set][highestLRU].validBit = 1;
                 cache[set][highestLRU].tag = tag;
                 cache[set][highestLRU].LRUTrack = 0;
             }
         }
-
-        if(operation == 'M') { 
-            hit ++;
-        }
+   
+        // if(operation == 'M') { 
+        //     hitCount ++;
+        // }
     }
 
-    fclose(fp);
+    fclose(fp); //Problems: cache doesn't univesally update. Also, the free is fucked up and shuts the program down. 
     
 }
 
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
     replayTrace(trace_file);
 
     /* Free allocated memory */
-    freeCache();
+    // freeCache();
 
     /* Output the hit and miss statistics for the autograder */
     printSummary(hit_count, miss_count, eviction_count);
@@ -246,8 +246,10 @@ int main(int argc, char* argv[]) {
 }
 
 
-
 // int main(){
-//     replayTrace("traces/yi.trace");
+//     S = 3;
+//     E = 1;
+//     b = 2;
+//     initCache();
 //     return 0;
 // } 
