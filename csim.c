@@ -1,4 +1,8 @@
+
+
 /* 
+ * Lab done by Charlotte Chen and Jay Kim!
+ *
  * csim.c - A cache simulator that can replay traces from Valgrind
  *     and output statistics such as number of hits, misses, and
  *     evictions.  The replacement policy is LRU.
@@ -34,7 +38,6 @@ int eviction_count = 0;
 // /* 
 //  * initCache - Allocate memory, write 0's for valid and tag and LRU
 //  * also computes the set_index_mask
-//  * FILL THIS FUNCTION IN
 //  */
 
 typedef struct cacheLine{
@@ -75,7 +78,6 @@ void initCache() {
 
 // /* 
 //  * freeCache - free allocated memory
-//  * FILL THIS FUNCTION IN
 //  */
 
 void freeCache() {
@@ -152,6 +154,11 @@ void replayTrace(char* filename) {
             step 2: check if its a hit or miss. For loop through cache[set] looking for a matching tag. 
             Then have an if statement about if the valid bit is 1. 
         */
+        for(int i = 0; i < E; i++){
+            if(cache[set][i].validBit == 1){
+                cache[set][i].LRUTrack++;
+            }
+        }    
         for(int i = 0; i<E; i++){ 
             // printf("validBit %d \n", cache[set][i].validBit);
 
@@ -180,11 +187,7 @@ void replayTrace(char* filename) {
         if(hit == 0){
             //printf("MISS \n");
             miss_count++;
-            for(int i = 0; i < E; i++){
-                if(cache[set][i].validBit == 1){
-                    cache[set][i].LRUTrack++;
-                }
-            }                
+                           
             
             if(cacheSpaceTrue != 0){ //this is if there is a spot in the cache with 0 valid bit
                 //printf("space in cache True 2 \n");
